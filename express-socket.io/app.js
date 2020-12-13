@@ -3,7 +3,7 @@ const server = require("http").Server(app);
 const io = require("socket.io")(server);
 
 server.listen("8080", function () {
-  console.log("服务启动在3000");
+  console.log("服务启动在8080");
 });
 
 app.get("/", function (req, res, next) {
@@ -14,7 +14,7 @@ let users = []; // 记录当前所有用户信息
 
 // 连接
 io.on("connect", (socket) => {
-  // 登陆处理
+  // 登陆处理w
   socket.on("login", (username, id) => {
     users.push({
       username: username,

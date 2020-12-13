@@ -11,7 +11,8 @@
   "license": "ISC",
   "dependencies": {
     "express": "^4.17.1",
-    "socket.io": "^3.0.4",
-    "nodejs-websocket": "^1.7.2"
+    "moment": "^2.29.1",
+    "nodejs-websocket": "^1.7.2",
+    "socket.io": "^3.0.4"
   }
 }
