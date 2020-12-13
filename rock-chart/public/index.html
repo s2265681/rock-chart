@@ -14,8 +14,9 @@
     <meta id="stopUsePullRefresh" value="true" />
     <meta id="WV.Meta.DisableRefresh" value="true" />
     <meta id="WV.Meta.StopBounces" value="true" />
-    <title>Title</title>
-    <link rel="stylesheet" href="index.css" />
+    <title>Rock Chart</title>
+    <link rel="stylesheet" href="./css/index.css" />
+    <link rel="stylesheet" href="./css/element-ui.css" />
   </head>
   <body>
     <div id="app">
@@ -140,9 +141,9 @@
                   >{{active_user.username}}</span
                 >
               </header>
-              <div class="right_chart_container">
+              <div class="right_chart_container" ref="right_chart_container">
                 <!-- 聊天区域列表消息 -->
-                <ul class="message_list_area">
+                <ul class="message_list_area" ref="message_list_area">
                   <li
                     class="message_list_item"
                     v-for="message in filterMessageList"
@@ -160,6 +161,14 @@
                     </div>
                   </li>
                 </ul>
+              </div>
+              <!-- 向下查看最新消息 -->
+              <div v-if="isShowToBottom" @click="backNewMsg()" class="backmsg_bottom">
+                <img
+                  class="backmsg_bottom_icon"
+                  src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAMAAAAoLQ9TAAAABGdBTUEAALGPC/xhBQAAACBjSFJN AAB6JgAAgIQAAPoAAACA6AAAdTAAAOpgAAA6mAAAF3CculE8AAAATlBMVEUAAAAzmeo0mekzmeoz mOkxmO0zmeozmuszmuszmOkzmeszmeozmuozmOk0mes0meoymeo0meszmus0muozmeo0muwzmOk0 mOgzmer///9Z8XUPAAAAGHRSTlMAqplVmiqgftSmpXifcplsk2eNYoddgVlrj/8cAAAAAWJLR0QZ 7G61iAAAAAd0SU1FB+QHFgMMCVF8bpYAAABfSURBVBjTXc5XEoAgDEXRFyOKFbvuf6VCMgwlf+cO EIB6qMnFVBb+uDijTiXalzazMaF00YzeShnUo98yaRHPFC4tUoJX0jedFGCjuH+XclD64enLlRm4 7VMYeCun+QEitgJTe9NuewAAACV0RVh0ZGF0ZTpjcmVhdGUAMjAyMC0wNy0yMlQwMzoxMjowNysw MDowMKgoBaAAAAAldEVYdGRhdGU6bW9kaWZ5ADIwMjAtMDctMjJUMDM6MTI6MDcrMDA6MDDZdb0c AAAAAElFTkSuQmCC"
+                />
+                <span>回到最新消息</span>
               </div>
               <footer class="right_chart_footer">
                 <div class="utils">
@@ -181,185 +190,9 @@
         </div>
       </div>
     </div>
-
     <script src="/socket.io/socket.io.js"></script>
-    <!-- vue -->
-    <script src="https://cdn.jsdelivr.net/npm/vue"></script>
-    <!-- 引入样式 -->
-    <link
-      rel="stylesheet"
-      href="https://unpkg.com/element-ui/lib/theme-chalk/index.css"
-    />
-    <!-- 引入组件库 -->
-    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
-    <script type="text/javascript">
-      var socket = io();
-      var app = new Vue({
-        el: "#app",
-        data: {
-          loginFormVisible: false,
-          userInfoform: {
-            avatar:
-              "https://ss0.bdstatic.com/70cFuHSh_Q1YnxGkpoWK1HF6hhy/it/u=2929367867,3674362923&fm=26&gp=0.jpg",
-            id: "",
-            username: "",
-          },
-          formLabelWidth: "120px",
-          title: "rock chart!",
-          active_user: {
-            avatar: "",
-            id: "METTING",
-            username: "大厅",
-          },
-          chartList: [],
-          msgInfo: "",
-          meeting: {
-            avatar: "./image/avatar2.jpg",
-            id: "METTING",
-            username: "大厅",
-            toWhoId: "METTING",
-          },
-          defaultMsg: {
-            avatar: "./image/avatar2.jpg",
-            id: "METTING",
-            username: "官方",
-            data_time: "12:00",
-            message: "欢迎来到聊天室",
-            type: 1, // 1 代表左边 我接收的消息  2 代表右边 我发出的消息
-            toWho: "ereryOne",
-            toWhoId: "METTING",
-          },
-          allMessageList: [],
-          messageList: [],
-        },
-        created() {
-          socket.on("loginSuccess", this.loginSuccess);
-          socket.on("notify", this.notify);
-          socket.on("updateUserList", this.updateUserList);
-          socket.on("sockedloginOut", this.sockedloginOut);
-          socket.on("receviedMessage", this.receviedMessage);
-        },
-        computed: {
-          filterMessageList: function () {
-            console.log(
-              this.messageList,
-              "当前+++"
-            );
-            let msg = [];
-            // 大厅情况下
-            if (this.active_user.id === "METTING") {
-              msg = [this.defaultMsg , ...this.messageList.filter((el) => el.toWhoId === "METTING")]
-            } else {
-              // 非大厅
-              // 过滤掉非大厅的
-              msg = this.messageList.filter((el) => el.toWhoId !== "METTING");
-              // 过滤出我收到的和我发出的
-              msg = msg.filter(
-                (item) =>
-                  item.toWhoId === this.userInfoform.id ||
-                  item.id === this.userInfoform.id
-              );
-              // 过滤出当前标签 我发出的 和 发给我的
-              msg = msg.filter(
-                (item) =>
-                  item.toWhoId === this.active_user.id ||
-                  item.id === this.active_user.id
-              );
-            }
-            return msg;
-          },
-        },
-        methods: {
-          // 登陆
-          submitForm(formName) {
-            this.$refs[formName].validate((valid) => {
-              if (valid) {
-                this.loginFormVisible = false;
-                this.userInfoform.id = socket.id;
-                socket.emit("login", this.userInfoform);
-              } else {
-                return false;
-              }
-            });
-          },
-          // 登陆成功的处理
-          loginSuccess() {
-            this.$message({
-              message: "恭喜你，登陆成功！",
-              type: "success",
-            });
-          },
-          // 通知所有用户的消息
-          notify(userInfo) {
-            this.$message(`${userInfo.username} 加入了聊天室, 找他聊聊吧！`);
-          },
-          // 更新用户列表
-          updateUserList(users) {
-            if (this.userInfoform.id) {
-              this.chartList = [
-                this.meeting,
-                ...users.filter((user) => user.id !== this.userInfoform.id),
-              ];
-              return;
-            }
-            this.chartList = [
-              this.meeting,
-              ...users.filter((user) => user.id !== this.userInfoform.id),
-            ];
-          },
-          // 重置表单
-          resetForm(formName) {
-            this.$refs[formName].resetFields();
-          },
-          // 退出登陆方法
-          loginOut() {
-            socket.emit("loginOut", this.userInfoform);
-            this.userInfoform = { avatar: "", id: "", username: "" };
-            this.$message({ type: "success", message: "退出成功！" });
-          },
-          // 广播退出消息给其他人
-          sockedloginOut(username) {
-            this.$message(`${username} 退出了聊天室！`);
-          },
-          // 处理发送消息
-          onKeyDown(event) {
-            let evt = window.event || event;
-            let sockedType = "everyone"; // 大厅 ereryone or someone 私聊
-            let toWho = this.meeting;
-            if (evt.keyCode == 13) {
-              if (this.active_user.id !== "METTING") {
-                sockedType = "someone";
-                toWho = this.active_user;
-              }
-              this.sendMsg(
-                this.userInfoform,
-                sockedType,
-                toWho,
-                this.msgInfo.trim()
-              );
-              this.msgInfo = "";
-            }
-          },
-          // 发送消息 sockedType 判断是群发 还是私发 默认群发
-          sendMsg(sendUser, sockedType = "everyone", toWho, messageValue) {
-            socket.emit(
-              "to send msg",
-              sendUser,
-              toWho,
-              messageValue,
-              sockedType
-            );
-          },
-          // 接收大厅消息
-          receviedMessage(toWho, messageList) {
-            this.messageList = messageList;
-          },
-          // 切换聊天对象
-          changeChartObj(userInfo) {
-            this.active_user = userInfo;
-          },
-        },
-      });
-    </script>
+    <script src="./js/vue.min.js"></script>
+    <script src="./js/element-ui.js"></script>
+    <script src="./js/index.js" type="text/javascript"></script>
   </body>
 </html>
