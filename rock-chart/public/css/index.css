@@ -2,6 +2,7 @@
   padding: 0;
   margin: 0;
 }
+
 .ft17 {
   font-size: 17px !important;
 }
@@ -10,6 +11,8 @@
   width: 100%;
   height: 100vh;
   background-color: #efefef;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 /* header */
 .header {
@@ -17,7 +20,8 @@
   height: 44px;
   line-height: 44px;
   margin: 0 auto;
-  padding: 0px 80px;
+  /* padding: 0px 80px; */
+  padding: 0px 40px 0px 80px;
   background-color: #fff;
   box-shadow: rgba(0, 0, 0, 0.2) 1px 1px 3px;
   display: -webkit-box;
@@ -39,16 +43,49 @@
   justify-content: space-evenly;
 }
 .title_msg {
+  width: 190px !important;
   font-size: 14px;
   font-weight: 400;
 }
+
+.title_msg_name {
+  width: 170px !important;
+  font-size: 14px;
+  font-weight: 400;
+  font-size: 17px !important;
+  display: inline-block;
+  color: #fff;
+  margin: 15px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex-wrap: nowrap;
+  white-space: nowrap;
+}
+
+.badge {
+  position: relative;
+  left: -2px;
+  /* top: 3px; */
+}
+
+.badge_title_msg {
+  position: relative;
+  top: -4px;
+  right: 0px;
+  cursor: pointer;
+}
+
 .title_avatar {
   display: block;
   width: 32px;
   height: 32px;
   border-radius: 50%;
+  position: relative;
+  /* left: 10px; */
 }
 .title_islogin {
+  font-size: 14px;
+  font-weight: 400;
   position: absolute;
   right: 50px;
   cursor: pointer;
@@ -63,11 +100,11 @@
 
 /* 主视图 */
 .index-box {
-  /* background-color: #ff0; */
   margin-top: 10px;
   display: flex;
   justify-content: center;
   align-items: center;
+  height: 90%;
 }
 .indexBox {
   width: 1200px;
@@ -79,11 +116,17 @@
 
 /* 主视图 左侧 */
 .left_menu {
-  width: 320px;
+  width: 440px;
+  height: 100%;
+}
+
+.pack_up_menu {
+  width: 50px;
   height: 100%;
 }
 
 .menu_title {
+  position: relative;
   height: 68px;
   background: #2e2e2e;
   padding: 0 16px;
@@ -91,20 +134,47 @@
   box-sizing: border-box;
   display: flex;
   align-items: center;
-  justify-content: center;
+  /* justify-content: center; */
+}
+
+.menu_title .menu_icon {
+  position: absolute;
+  right: 19px;
+  cursor: pointer;
 }
 
 .name {
+  position: relative;
+  top: 5px;
+  display: inline-block;
   color: #fff;
-  width: 180px;
-  margin: 15px;
+  max-width: 100px;
+  margin: 3px 1px 9px 15px;
+
   overflow: hidden;
-  word-wrap: break-word;
   text-overflow: ellipsis;
   flex-wrap: nowrap;
   white-space: nowrap;
   font-size: 14px;
 }
+
+.unread_name {
+  max-width: 90px;
+  margin: 15px;
+}
+
+.unread_message {
+  position: absolute;
+  top: 34px;
+  right: 16px;
+  color: #eee;
+  width: 100px;
+  text-align: right;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
 .menu_icon {
   width: 18px;
   height: 18px;
@@ -123,13 +193,12 @@
   height: calc(100% - 67px);
   overflow: auto;
   background-color: #3d3d3d;
-  margin-left: -20px;
 }
 
 .chart_list_item {
   height: 68px;
   background: #3d3d3d;
-  padding: 10px 16px;
+  padding: 10px 13px;
   border-bottom: 1px solid #2e2e2e;
   display: -webkit-box;
   display: -ms-flexbox;
@@ -137,7 +206,6 @@
   cursor: pointer;
   box-sizing: border-box;
   align-items: center;
-  justify-content: center;
   position: relative;
 }
 
@@ -216,13 +284,16 @@
 .right_chart_footer {
   padding: 0px 10px;
   box-sizing: border-box;
-  /* background-color: palegoldenrod; */
 }
+
 .utils {
   height: 34px;
 }
+
 .utils img {
   width: 100%;
+  height: 40px;
+  object-fit: contain;
 }
 
 .input_content {
@@ -305,19 +376,47 @@
   margin: 0px 15px;
 }
 
-/* .login_container{
-    width: 100%;
-    height:100vh;
-    /*100% 100%; 
-} 
-*/
-
 .el-dialog__wrapper {
-  background-image: url(./image/bg.jpg);
+  background-image: url(../image/bg.jpg);
+  background-size: 100% 100%;
 }
 
 /* 去掉radios  */
-
 .login_container .el-radio__input {
   display: none;
+}
+
+/* 右上角的消息 */
+.item_el_badge {
+  position: absolute;
+  top: 9px;
+  right: 5px;
+}
+
+.el-dropdown {
+  left: 20px;
+}
+
+.el-dropdown-link {
+  cursor: pointer;
+  color: #409eff;
+}
+.el-icon-arrow-down {
+  font-size: 12px;
+}
+
+.el-popover {
+  padding: 6 !important;
+}
+
+.el-badge__content {
+  position: absolute;
+  top: 8px;
+  right: 7px;
+}
+
+.is-fixed {
+  position: absolute;
+  top: 10px !important;
+  right: 8px !important;
 }

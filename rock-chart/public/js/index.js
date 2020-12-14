@@ -2,12 +2,21 @@ var socket = io();
 var app = new Vue({
   el: "#app",
   data: {
-    loginFormVisible: false,
+    avatars: [
+      "./image/avatar.jpg",
+      "./image/avatar01.jpg",
+      "./image/avatar02.jpg",
+      "./image/avatar03.jpg",
+      "./image/avatar04.jpg",
+      "./image/avatar05.jpg",
+      "./image/avatar06.jpg",
+    ],
+    loginFormVisible: true,
     userInfoform: {
-      avatar:
-        "https://ss0.bdstatic.com/70cFuHSh_Q1YnxGkpoWK1HF6hhy/it/u=2929367867,3674362923&fm=26&gp=0.jpg",
+      avatar: "",
       id: "",
       username: "",
+      count: 0,
     },
     formLabelWidth: "120px",
     title: "rock chart!",
@@ -23,6 +32,8 @@ var app = new Vue({
       id: "METTING",
       username: "大厅",
       toWhoId: "METTING",
+      isRead: 1,
+      count: 0,
     },
     defaultMsg: {
       avatar: "./image/avatar2.jpg",
@@ -40,6 +51,23 @@ var app = new Vue({
     msglistAreaDomHeight: 0,
     chartAreaTop: 0, // 右侧区域据上面的高度
     show: false,
+    // 新消息
+    allNoReadCount: 0,
+    // 处理未读的数组
+    unReadList: [], // 未读消息列表
+    receiveMsgList: [], // 我接收的所有消息
+    isPackup:false
+  },
+  beforeCreate(){
+    const loading = this.$loading({
+        lock: true,
+        text: 'Loading',
+        spinner: 'el-icon-loading',
+        background: 'rgba(250, 250, 250, 0.8)'
+      });
+      setTimeout(() => {
+        loading.close();
+      }, 500);
   },
   created() {
     socket.on("loginSuccess", this.loginSuccess);
@@ -57,7 +85,6 @@ var app = new Vue({
     );
   },
   computed: {
-    countChartAraeTop: function () {},
     isShowToBottom: function () {
       let chartAreaDomHeight = this.chartAreaDomHeight;
       let msglistAreaDomHeight = this.msglistAreaDomHeight;
@@ -92,7 +119,7 @@ var app = new Vue({
             item.id === this.active_user.id
         );
       }
-      // 处理 收到自己发的消息的时候 滚到最下面
+      // 处理 自己发的消息的时候 滚到最下面
       msg.map((item) => {
         if (
           item.id === this.userInfoform.id &&
@@ -102,6 +129,34 @@ var app = new Vue({
         }
       });
       return msg;
+    },
+  },
+  watch: {
+    receiveMsgList: function () {
+      // 改变总的消息数量
+      let unReadList = this.receiveMsgList.filter((el) => el.isRead === 0);
+      this.allNoReadCount = unReadList.length;
+      // 改变单个用户列表的数量变化
+      let sifaNum = unReadList.filter(
+        (el) => el.toWhoId === this.userInfoform.id
+      ).length;
+      let qufaNum = unReadList.filter((el) => el.toWhoId === "METTING").length;
+      this.chartList.forEach((item, index) => {
+        // 大厅
+        if (item.id === "METTING") {
+          item.count = qufaNum;
+        } else if (!sifaNum) {
+          item.count = 0;
+        } else {
+          unReadList.forEach((el) => {
+            if (el.toWhoId === this.userInfoform.id && item.id === el.id) {
+              // 私发
+              item.count = sifaNum;
+            }
+          });
+        }
+      });
+      this.unReadList = unReadList;
     },
   },
   methods: {
@@ -126,7 +181,10 @@ var app = new Vue({
     },
     // 通知所有用户的消息
     notify(userInfo) {
-      this.$message(`${userInfo.username} 加入了聊天室, 找他聊聊吧！`);
+      this.$message({
+        message: `${userInfo.username} 加入了聊天室, 找他聊聊吧！`,
+        type: "warning",
+      });
     },
     // 更新用户列表
     updateUserList(users) {
@@ -154,7 +212,7 @@ var app = new Vue({
     },
     // 广播退出消息给其他人
     sockedloginOut(username) {
-      this.$message(`${username} 退出了聊天室！`);
+      this.$message({ message: `${username} 退出了聊天室！`, type: "warning" });
     },
     // 处理发送消息
     onKeyDown(event) {
@@ -166,12 +224,12 @@ var app = new Vue({
           sockedType = "someone";
           toWho = this.active_user;
         }
-        this.sendMsg(this.userInfoform, sockedType, toWho, this.msgInfo.trim());
-        this.msgInfo = "";
         // 重新计算消息高度属性
         this.$nextTick(() => {
           this.msglistAreaDomHeight = this.$refs.message_list_area.clientHeight;
         });
+        this.sendMsg(this.userInfoform, sockedType, toWho, this.msgInfo.trim());
+        this.msgInfo = "";
       }
     },
     // 发送消息 sockedType 判断是群发 还是私发 默认群发
@@ -180,15 +238,41 @@ var app = new Vue({
     },
     // 接收大厅消息
     receviedMessage(toWho, messageList) {
+      // 先根据时间过滤我接收的最新消息吧 后面在改成 生成唯一key
+      let arr = this.receiveMsgList;
+      this.receiveMsgList = messageList.filter(
+        (item) => item.id !== this.userInfoform.id
+      );
       this.messageList = messageList;
+      if (arr.length === 0) return;
+
+      this.receiveMsgList.forEach((item) => {
+        arr.forEach((el) => {
+          if (item.uuid === el.uuid) {
+            item.isRead = el.isRead;
+          }
+        });
+      });
     },
+
     // 切换聊天对象
     changeChartObj(userInfo) {
       this.active_user = userInfo;
-      this.$nextTick(function () {
-        this.msglistAreaDomHeight = this.$refs.message_list_area.clientHeight;
-      });
+      // 滑动到底部
       this.backNewMsg();
+      // 未读改已读
+      this.dealUnread(userInfo.id);
+    },
+    // 处理未读
+    dealUnread(userid) {
+      this.receiveMsgList.map((item) => {
+        if (userid === "METTING" && item.toWhoId === "METTING") {
+          item.isRead = 1;
+        } else if (userid === item.id && item.toWhoId !== "METTING") {
+          item.isRead = 1;
+        }
+      });
+      this.receiveMsgList = this.receiveMsgList.slice();
     },
     // 滑动区域触发
     scrollHander() {
