@@ -1,5 +1,6 @@
 //https://socket.io/docs/v3/server-api/
-var socket = io();
+// var socket = io();
+var socket = io.connect('http://localhost:3000/login');
 var app = new Vue({
   el: "#login",
   data: {
@@ -62,7 +63,7 @@ var app = new Vue({
         type: "success",
       });
       setTimeout(()=>{
-        window.location.href = "/index.html?userId="+ encodeURIComponent(`${userInfo.id}`)
+        window.location.href = "/index.html?username="+ encodeURI(`${userInfo.username}`)
       },500)
     },
      // 登陆失败

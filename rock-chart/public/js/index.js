@@ -1,4 +1,5 @@
 //https://socket.io/docs/v3/server-api/
+var socket = io.connect("http://localhost:3000/chat");
 var socket;
 var app = new Vue({
   el: "#app",
@@ -16,7 +17,7 @@ var app = new Vue({
       username: "大厅",
     },
     chartList: [],
-    msgInfo: "",
+    // msgInfo: "",
     meeting: {
       avatar: "./image/avatar2.jpg",
       id: "METTING",
@@ -60,11 +61,11 @@ var app = new Vue({
     }, 500);
   },
   created() {
-    var userId = window.location.search.slice(8);
+    var username = window.location.search.slice(10);
     // 将当前用户id传入
-    socket = io({
+    socket = io.connect("http://localhost:3000/chat", {
       query: {
-        userId: userId,
+        username: decodeURI(username),
       },
     });
     socket.on("notify", this.notify);
@@ -82,6 +83,8 @@ var app = new Vue({
       this.scrollHander,
       true
     );
+
+    //发送表情
   },
   computed: {
     isShowToBottom: function () {
@@ -177,6 +180,7 @@ var app = new Vue({
     },
     // 登陆成功的处理
     loginSuccess(userInfo, users, messageList) {
+      // console.log(socket.id,'11lossd')
       this.userInfoform = userInfo;
       this.updateUserList(users);
       this.receviedMessage({}, messageList);
@@ -232,28 +236,47 @@ var app = new Vue({
     // 处理发送消息
     onKeyDown(event) {
       let evt = window.event || event;
+      let msg = evt.target.innerText.trim();
       let sockedType = "everyone"; // 大厅 ereryone or someone 私聊
       let toWho = this.meeting;
-      if (!this.msgInfo.trim()) return;
-      if (evt.keyCode == 13) {
+      // 正在输入
+      socket.emit("isInputing", this.userInfoform, this.active_user);
+      if (evt.ctrlKey && evt.keyCode === 13) {
+        this.$refs.input_content.innerHTML += "<br/>";
+        //设置输入焦点
+        var o = this.$refs.input_content.lastChild;
+        var textbox = this.$refs.input_content;
+        var sel = window.getSelection();
+        var range = document.createRange();
+        range.selectNodeContents(textbox);
+        range.collapse(false);
+        range.setEndAfter(o); //
+        range.setStartAfter(o); //
+        sel.removeAllRanges();
+        sel.addRange(range);
+      }
+      if (!evt.ctrlKey && evt.keyCode == 13) {
+        evt.preventDefault(); // 不慌换行
+        if (!this.$refs.input_content.lastChild)
+          return this.$message({ message: "消息不能为空！", type: "error" });
+        msg = evt.target.innerHTML;
         if (!this.userInfoform.username)
           return this.$message({ message: "请先登陆！", type: "error" });
         if (this.active_user.id !== "METTING") {
           sockedType = "someone";
           toWho = this.active_user;
-          socket.emit("is inputing", this.userInfoform, this.active_user);
-
         }
         // 重新计算消息高度属性
         this.$nextTick(() => {
           this.msglistAreaDomHeight = this.$refs.message_list_area.clientHeight;
         });
-        this.sendMsg(this.userInfoform, sockedType, toWho, this.msgInfo.trim());
-        this.msgInfo = "";
+        this.sendMsg(this.userInfoform, sockedType, toWho, msg.trim());
+        this.$refs.input_content.innerHTML = "";
       }
     },
     // 对方正在输入
     isInputting(userInfo) {
+      console.log("对方正在输入。。。", userInfo);
       this.isInputUser = {
         username: userInfo.username,
         receiveId: userInfo.id,
@@ -264,12 +287,11 @@ var app = new Vue({
     },
     // 发送消息 sockedType 判断是群发 还是私发 默认群发
     sendMsg(sendUser, sockedType = "everyone", toWho, messageValue) {
-        console.log(sendUser, sockedType, toWho, messageValue)
       socket.emit("to send msg", sendUser, toWho, messageValue, sockedType);
     },
     // 接收大厅消息
     receviedMessage(toWho, messageList) {
-        // console.log('接收数据。。。。。')
+      // debugger
       // 先根据时间过滤我接收的最新消息吧 后面在改成 生成唯一key
       let arr = this.receiveMsgList;
       this.receiveMsgList = messageList.filter(
@@ -286,7 +308,6 @@ var app = new Vue({
         });
       });
     },
-
     // 切换聊天对象
     changeChartObj(userInfo) {
       this.active_user = userInfo;
@@ -315,6 +336,24 @@ var app = new Vue({
       this.$nextTick(function () {
         this.$refs.right_chart_container.scrollTo(0, this.msglistAreaDomHeight);
       });
+    },
+    // 发送图片
+    sendImage(e) {
+      let _this = this;
+      //拿到上传的文件
+      var file = e.target.files[0];
+      //把文件发送的服务器，使用H5的功能fileReader,读取上传的文件
+      var fr = new FileReader();
+      fr.readAsDataURL(file);
+      let sockedType = "everyone",
+        toWho = this.meeting;
+      if (this.active_user.id !== "METTING") {
+        sockedType = "someone";
+        toWho = this.active_user;
+      }
+      fr.onload = function () {
+        _this.sendMsg(_this.userInfoform, sockedType, toWho, fr.result);
+      };
     },
   },
 });

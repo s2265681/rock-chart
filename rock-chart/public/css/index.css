@@ -75,8 +75,8 @@
   cursor: pointer;
 }
 
-.turnT{
-    top: -10px;
+.turnT {
+  top: -10px;
 }
 
 .title_avatar {
@@ -307,6 +307,7 @@
   margin-right: 2px;
   font: 14px/1.5 Helvetica, Arial, Tahoma, 微软雅黑;
   width: 100%;
+  top:10px;
   height: 136px;
   outline: none;
   background: #fff;
@@ -428,10 +429,49 @@
 }
 
 /* 正在输入 */
-.is_input{
-    position: absolute;
-    font-size: 10px;
-    right: 22px;
-    top: 14px;
-    color: #999;
+.is_input {
+  position: absolute;
+  font-size: 10px;
+  right: 22px;
+  top: 14px;
+  color: #999;
+}
+
+/* 工具栏 */
+.box-ft .toolbar {
+  height: 30px;
+  padding: 4px 0px;
+}
+
+.box-ft .toolbar .face {
+  display: inline-block;
+  vertical-align: middle;
+  width: 30px;
+  height: 30px;
+  background: url("../image/wechat-sprit.png") no-repeat -404px -398px;
+}
+
+.box-ft .toolbar .screen-cut {
+  display: inline-block;
+  vertical-align: middle;
+  width: 30px;
+  height: 30px;
+  background: url("../image/wechat-sprit.png") no-repeat -30px -432px;
+}
+
+.box-ft .toolbar .file label {
+  opacity: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  cursor: pointer;
+  background: rgb(255, 255, 255);
+}
+
+.box-ft .toolbar .file {
+  display: inline-block;
+  vertical-align: middle;
+  width: 30px;
+  height: 30px;
+  background: url("../image/wechat-sprit.png") no-repeat -120px -432px;
 }

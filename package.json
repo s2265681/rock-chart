@@ -16,6 +16,7 @@
     "moment": "^2.29.1",
     "nodejs-websocket": "^1.7.2",
     "socket.io": "^3.0.4",
-    "vue": "^2.6.12"
+    "vue": "^2.6.12",
+    "vue-emoji-picker": "^1.0.1"
   }
 }
