@@ -1,3 +1,6 @@
+知乎socket文档
+https://zhuanlan.zhihu.com/p/29148869
+
 ```js
     created() {
     socket.on("loginSuccess", this.loginSuccess);
@@ -20,3 +23,19 @@
   this.receiveMsgList = this.receiveMsgList.slice()
 
 ```
+
+
+服务端 参考
+舍弃websocket更换SOCKET.IO，用socket.io作为中间件，进行前端和后端的长连接中转站
+https://blog.csdn.net/u010026207/article/details/90409456
+
+
+
+BUG 刷新页面 会socketio 会重连 更换新的socket  
+
+
+
+
+客户端发起重连 
+服务端显示是否重连成功
+https://blog.csdn.net/function__/article/details/73089504

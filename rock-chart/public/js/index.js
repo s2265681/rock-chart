@@ -1,24 +1,14 @@
-var socket = io();
+//https://socket.io/docs/v3/server-api/
+var socket;
 var app = new Vue({
   el: "#app",
   data: {
-    avatars: [
-      "./image/avatar.jpg",
-      "./image/avatar01.jpg",
-      "./image/avatar02.jpg",
-      "./image/avatar03.jpg",
-      "./image/avatar04.jpg",
-      "./image/avatar05.jpg",
-      "./image/avatar06.jpg",
-    ],
-    loginFormVisible: true,
     userInfoform: {
       avatar: "",
       id: "",
       username: "",
       count: 0,
     },
-    formLabelWidth: "120px",
     title: "rock chart!",
     active_user: {
       avatar: "",
@@ -45,7 +35,6 @@ var app = new Vue({
       toWho: "ereryOne",
       toWhoId: "METTING",
     },
-    newMessageList: [],
     messageList: [],
     chartAreaDomHeight: 345,
     msglistAreaDomHeight: 0,
@@ -56,25 +45,35 @@ var app = new Vue({
     // 处理未读的数组
     unReadList: [], // 未读消息列表
     receiveMsgList: [], // 我接收的所有消息
-    isPackup:false
+    isPackup: false,
+    isInputUser: { username: "", receiveId: "" },
   },
-  beforeCreate(){
+  beforeCreate() {
     const loading = this.$loading({
-        lock: true,
-        text: 'Loading',
-        spinner: 'el-icon-loading',
-        background: 'rgba(250, 250, 250, 0.8)'
-      });
-      setTimeout(() => {
-        loading.close();
-      }, 500);
+      lock: true,
+      text: "Loading",
+      spinner: "el-icon-loading",
+      background: "rgba(250, 250, 250, 0.8)",
+    });
+    setTimeout(() => {
+      loading.close();
+    }, 500);
   },
   created() {
-    socket.on("loginSuccess", this.loginSuccess);
+    var userId = window.location.search.slice(8);
+    // 将当前用户id传入
+    socket = io({
+      query: {
+        userId: userId,
+      },
+    });
     socket.on("notify", this.notify);
     socket.on("updateUserList", this.updateUserList);
     socket.on("sockedloginOut", this.sockedloginOut);
     socket.on("receviedMessage", this.receviedMessage);
+    socket.on("isInputting", this.isInputting);
+    socket.on("loginFail", this.loginFail);
+    socket.on("loginSuccess", this.loginSuccess);
   },
   mounted() {
     this.msglistAreaDomHeight = this.$refs.message_list_area.clientHeight;
@@ -135,6 +134,10 @@ var app = new Vue({
     receiveMsgList: function () {
       // 改变总的消息数量
       let unReadList = this.receiveMsgList.filter((el) => el.isRead === 0);
+      // 还要过滤掉不是发给本人的消息
+      unReadList = unReadList.filter(
+        (el) => el.toWhoId === "METTING" || el.toWhoId === this.userInfoform.id
+      );
       this.allNoReadCount = unReadList.length;
       // 改变单个用户列表的数量变化
       let sifaNum = unReadList.filter(
@@ -173,14 +176,23 @@ var app = new Vue({
       });
     },
     // 登陆成功的处理
-    loginSuccess() {
+    loginSuccess(userInfo, users, messageList) {
+      this.userInfoform = userInfo;
+      this.updateUserList(users);
+      this.receviedMessage({}, messageList);
+    },
+    // 登陆失败
+    loginFail(msg = "没有权限!") {
       this.$message({
-        message: "恭喜你，登陆成功！",
-        type: "success",
+        message: msg,
+        type: "error",
       });
+      setTimeout(() => {
+        window.location.href = "/login.html";
+      }, 500);
     },
     // 通知所有用户的消息
-    notify(userInfo) {
+    notify(userInfo, users, messageList) {
       this.$message({
         message: `${userInfo.username} 加入了聊天室, 找他聊聊吧！`,
         type: "warning",
@@ -209,6 +221,9 @@ var app = new Vue({
       socket.emit("loginOut", this.userInfoform);
       this.userInfoform = { avatar: "", id: "", username: "" };
       this.$message({ type: "success", message: "退出成功！" });
+      setTimeout(() => {
+        window.location.href = "/login.html";
+      }, 500);
     },
     // 广播退出消息给其他人
     sockedloginOut(username) {
@@ -219,10 +234,15 @@ var app = new Vue({
       let evt = window.event || event;
       let sockedType = "everyone"; // 大厅 ereryone or someone 私聊
       let toWho = this.meeting;
+      if (!this.msgInfo.trim()) return;
       if (evt.keyCode == 13) {
+        if (!this.userInfoform.username)
+          return this.$message({ message: "请先登陆！", type: "error" });
         if (this.active_user.id !== "METTING") {
           sockedType = "someone";
           toWho = this.active_user;
+          socket.emit("is inputing", this.userInfoform, this.active_user);
+
         }
         // 重新计算消息高度属性
         this.$nextTick(() => {
@@ -232,12 +252,24 @@ var app = new Vue({
         this.msgInfo = "";
       }
     },
+    // 对方正在输入
+    isInputting(userInfo) {
+      this.isInputUser = {
+        username: userInfo.username,
+        receiveId: userInfo.id,
+      };
+      setTimeout(() => {
+        this.isInputUser = { username: "", receiveId: "" };
+      }, 1000);
+    },
     // 发送消息 sockedType 判断是群发 还是私发 默认群发
     sendMsg(sendUser, sockedType = "everyone", toWho, messageValue) {
+        console.log(sendUser, sockedType, toWho, messageValue)
       socket.emit("to send msg", sendUser, toWho, messageValue, sockedType);
     },
     // 接收大厅消息
     receviedMessage(toWho, messageList) {
+        // console.log('接收数据。。。。。')
       // 先根据时间过滤我接收的最新消息吧 后面在改成 生成唯一key
       let arr = this.receiveMsgList;
       this.receiveMsgList = messageList.filter(

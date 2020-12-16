@@ -75,6 +75,10 @@
   cursor: pointer;
 }
 
+.turnT{
+    top: -10px;
+}
+
 .title_avatar {
   display: block;
   width: 32px;
@@ -107,8 +111,10 @@
   height: 90%;
 }
 .indexBox {
-  width: 1200px;
-  height: 708px;
+  width: 80%;
+  min-width: 800px;
+  min-height: 500px;
+  height: 100%;
   border-radius: 5px;
   display: flex;
   overflow: hidden;
@@ -419,4 +425,13 @@
   position: absolute;
   top: 10px !important;
   right: 8px !important;
+}
+
+/* 正在输入 */
+.is_input{
+    position: absolute;
+    font-size: 10px;
+    right: 22px;
+    top: 14px;
+    color: #999;
 }
