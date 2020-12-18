@@ -61,11 +61,11 @@ var app = new Vue({
     }, 500);
   },
   created() {
-    var username = window.location.search.slice(10);
+    var userId = window.location.search.slice(8);
     // 将当前用户id传入
     socket = io.connect("http://localhost:3000/chat", {
       query: {
-        username: decodeURI(username),
+        userId: decodeURI(userId),
       },
     });
     socket.on("notify", this.notify);

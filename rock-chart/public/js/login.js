@@ -23,7 +23,8 @@ var app = new Vue({
       avatar: "",
       id: "",
       username: "",
-      count: 0
+      count: 0,
+      userId:''
     },
     formLabelWidth: "120px",
   },
@@ -58,12 +59,13 @@ var app = new Vue({
     // 登陆成功的处理
     loginSuccess(userInfo, users, messageList) {
       this.userInfoform = userInfo;
+      console.log(userInfo,'userInfo.....')
       this.$message({
         message: "恭喜你，登陆成功！",
         type: "success",
       });
       setTimeout(()=>{
-        window.location.href = "/index.html?username="+ encodeURI(`${userInfo.username}`)
+        window.location.href = "/index.html?userId="+ encodeURI(`${userInfo.userId}`)
       },500)
     },
      // 登陆失败
